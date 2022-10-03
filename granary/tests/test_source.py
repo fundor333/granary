@@ -120,7 +120,6 @@ class SourceTest(testutil.TestCase):
     self.mox.ReplayAll()
     self.assert_equals(None, self.source.get_share('author', 'activity', '6'))
 
-
   def test_get_rsvp(self):
     self.source.get_event('1').MultipleTimes().AndReturn(EVENT_ACTIVITY_WITH_RSVPS)
     self.mox.ReplayAll()
@@ -223,6 +222,13 @@ class SourceTest(testutil.TestCase):
     # double check our hacky fix. (programming is the worst!)
     self.assertEqual('XY', cfc({'objectType': 'note'}, {'content': 'XY'}))
 
+    # test for the tags .p-category
+    # https://github.com/snarfed/granary/issues/416
+    self.assertEqual('s',
+                     cfc(base, {'summary': ' s ', 'category': ['m', 'c'], }, prefer_name=True, ), )
+    self.assertEqual('s [#m #c]', cfc(base, {'displayName': 'n', 'content': 'c', 'summary': ' s ',
+                                             'category': ['m', 'c'], }, prefer_name=True,
+                                      add_tags=True, ))
     # test stripping .u-quotation-of
     # https://github.com/snarfed/bridgy/issues/723
     self.assertEqual('Watching waves break.', cfc({'objectType': 'note'}, {'content': """

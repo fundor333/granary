@@ -84,7 +84,7 @@ def html_to_text(html, baseurl='', **kwargs):
     html2text.config.RE_MD_DOT_MATCHER = \
       html2text.config.RE_MD_PLUS_MATCHER = \
       html2text.config.RE_MD_DASH_MATCHER = \
-        re.compile(r'(X)\\(Y)')
+      re.compile(r'(X)\\(Y)')
 
     return '\n'.join(
       # strip trailing whitespace that html2text adds to ends of some lines
@@ -196,11 +196,11 @@ class Source(object, metaclass=SourceMeta):
     return self.get_activities_response(*args, **kwargs)['items']
 
   def get_activities_response(
-      self, user_id=None, group_id=None, app_id=None, activity_id=None,
-      start_index=0, count=0, etag=None, min_id=None, cache=None,
-      fetch_replies=False, fetch_likes=False, fetch_shares=False,
-      include_shares=True, fetch_events=False, fetch_mentions=False,
-      search_query=None, scrape=False, **kwargs):
+    self, user_id=None, group_id=None, app_id=None, activity_id=None,
+    start_index=0, count=0, etag=None, min_id=None, cache=None,
+    fetch_replies=False, fetch_likes=False, fetch_shares=False,
+    include_shares=True, fetch_events=False, fetch_mentions=False,
+    search_query=None, scrape=False, **kwargs):
     """Fetches and returns ActivityStreams activities and response details.
 
     Subclasses should override this. See :meth:`get_activities()` for an
@@ -577,8 +577,8 @@ class Source(object, metaclass=SourceMeta):
     for tag in activity.get('object', {}).get('tags', []):
       author = tag.get('author', {})
       if (tag.get('verb') == verb and
-          (not tag_id or tag_id == tag.get('id')) and
-          (author.get('id') == user_tag_id or author.get('numeric_id') == user_id)):
+        (not tag_id or tag_id == tag.get('id')) and
+        (author.get('id') == user_tag_id or author.get('numeric_id') == user_id)):
         return tag
 
   @staticmethod
@@ -750,7 +750,7 @@ class Source(object, metaclass=SourceMeta):
       return id
 
   def _content_for_create(self, obj, ignore_formatting=False, prefer_name=False,
-                          strip_first_video_tag=False, strip_quotations=False):
+                          strip_first_video_tag=False, strip_quotations=False, add_tags=False):
     """Returns content text for :meth:`create()` and :meth:`preview_create()`.
 
     Returns summary if available, then content, then displayName.
@@ -813,9 +813,14 @@ class Source(object, metaclass=SourceMeta):
     elif not is_html and ignore_formatting:
       content = re.sub(r'\s+', ' ', content)
 
-    return summary or ((name or content) if prefer_name else
-                       (content or name)
-                       ) or ''
+    response = (summary or ((name or content) if prefer_name else (content or name)) or '')
+    if add_tags:
+      tags = []
+      for tag in obj.get('category', []):
+        tags.append(tag)
+      if len(tags) > 0:
+        response += ' [#' + ' #'.join(tags) + ']'
+    return response
 
   def truncate(self, content, url, include_link, type=None, quote_url=None):
     """Shorten text content to fit within a character limit.
